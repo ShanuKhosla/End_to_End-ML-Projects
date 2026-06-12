@@ -6,15 +6,18 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
+# Load model weights and scaler
 model_data = joblib.load('../housing_model.pkl')
-model_scaler = joblib.load('../housing_scaler.pkl')
+scaler = joblib.load('../housing_scaler.pkl')
 
 w = model_data['w']
 b = model_data['b']
 
 
 def predict_price(features):
-    features_scaled = model_scaler.transform([features])
+    # Scale the input using the saved scaler
+    features_scaled = scaler.transform([features])
+    # Forward pass — same equation as your numpy model
     prediction = features_scaled @ w + b
     return float(prediction[0])
 
@@ -35,6 +38,7 @@ def predict():
     ]
 
     price = predict_price(features)
+    # Clip at 0 — linear regression can predict negative prices
     price = max(0, price)
 
     return jsonify({
